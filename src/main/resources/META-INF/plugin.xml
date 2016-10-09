@@ -134,6 +134,11 @@
                     text="ADB Clear App Data and Restart"
                     description="Clears the private storage of the app and restarts it">
             </action>
+            <action id="com.developerphil.adbidea.action.GrantRevokePermissionAction"
+                    class="com.developerphil.adbidea.action.GrantRevokePermissionAction"
+                    text="ADB Grant or revoke application permissions"
+                    description="Grants or revokes application vulnerable permissions. Functionality works only on API 23+ devices">
+            </action>
             <add-to-group group-id="AndroidToolsGroup" anchor="first"/>
         </group>
     </actions>

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.developerphil.adbidea.ui;
+package com.developerphil.adbidea.ui.device;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;

@@ -1,4 +1,4 @@
-package com.developerphil.adbidea.ui;
+package com.developerphil.adbidea.ui.device;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.ide.util.PropertiesComponent;

@@ -38,4 +38,7 @@ public class AdbUtil {
         return null;
     }
 
+    public static int getApiVersion(IDevice device) {
+        return device.getVersion().getApiLevel();
+    }
 }

@@ -1,4 +1,4 @@
-package com.developerphil.adbidea.ui;
+package com.developerphil.adbidea.ui.device;
 
 /**
  * @author Eugene.Kudelevsky
