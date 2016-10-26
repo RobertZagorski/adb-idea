@@ -7,7 +7,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommandList implements Command {
+public class CommandList implements Command<Boolean, Void> {
 
     private List<Command> commands;
 
@@ -19,9 +19,9 @@ public class CommandList implements Command {
     }
 
     @Override
-    public boolean run(Project project, IDevice device, AndroidFacet facet, String packageName) {
+    public Boolean run(Project project, IDevice device, AndroidFacet facet, String packageName, Void... parameters) {
         for (Command command : commands) {
-            boolean success = command.run(project, device, facet, packageName);
+            boolean success = (boolean) command.run(project, device, facet, packageName);
             if (!success) {
                 return false;
             }

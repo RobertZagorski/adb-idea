@@ -2,6 +2,8 @@ package com.developerphil.adbidea.adb;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
+import com.android.tools.idea.model.DeclaredPermissionsLookup;
+import com.android.tools.lint.checks.PermissionHolder;
 import com.developerphil.adbidea.adb.command.*;
 import com.developerphil.adbidea.compatibility.DeviceCompatibleCallable;
 import com.developerphil.adbidea.model.PermissionState;
@@ -12,14 +14,14 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import org.jetbrains.android.dom.manifest.UsesPermission;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import static com.developerphil.adbidea.ui.NotificationHelper.error;
 
@@ -62,23 +64,11 @@ public class AdbFacade {
             return;
         }
         for (IDevice device : result.devices) {
-            runCommand(runnable, project, device, result);
+            runCommand(runnable, project, device, result, null);
         }
     }
 
-    private static <T> T executeOnDevice(Project project, CommandWithOutput<T> runnable) {
-        final DeviceResult result = getDevice(project, null);
-        if (result == null) {
-            error("No Device found");
-            return null;
-        }
-        for (IDevice device : result.devices) {
-            return runCommandWithOutput(runnable, project, device, result);
-        }
-        return null;
-    }
-
-    private static void executeOnCompatibleDevice(final Project project, final CommandWithParameter<PermissionState> runnable, int apiVersion) {
+    private static void executeOnCompatibleDevice(final Project project, final Command<Boolean, PermissionState> runnable, int apiVersion) {
         DeviceCompatibleCallable<Boolean, IDevice> isDeviceCompatible = device -> {
             if (AdbUtil.getApiVersion(device) >= apiVersion) {
                 return true;
@@ -102,24 +92,25 @@ public class AdbFacade {
         List<PermissionState> chosenPermissions = chooser.getPermissionStates();
         for (IDevice device : result.devices) {
             for (PermissionState permission : chosenPermissions) {
-                runCommandWithParameter(runnable, project, device, result, permission);
+                runCommand(runnable, project, device, result, permission);
             }
         }
     }
 
-    private static void runCommand(final Command runnable, final Project project,
-                                   final IDevice device, final DeviceResult result) {
-        EXECUTOR.submit(() -> runnable.run(project, device, result.facet, result.packageName));
-    }
-
-    private static <T> T runCommandWithOutput(final CommandWithOutput<T> runnable, final Project project,
-                                              final IDevice device, final DeviceResult result) {
-        return runnable.run(project, device, result.facet, result.packageName);
-    }
-
-    private static <T> boolean runCommandWithParameter(final CommandWithParameter<T> runnable, final Project project,
-                                                       final IDevice device, final DeviceResult result, T parameter) {
-        return runnable.run(project, device, result.facet, result.packageName, parameter);
+    private static <T, V> T runCommand(final Command<T, V> runnable, final Project project,
+                                                       final IDevice device, final DeviceResult result, V... parameter) {
+        Future<T> future = EXECUTOR.submit(new Callable<T>() {
+            @Override
+            public T call() throws Exception {
+                return runnable.run(project, device, result.facet, result.packageName, parameter);
+            }
+        });
+        try {
+            return future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private static DeviceResult getDevice(Project project,
@@ -173,12 +164,29 @@ public class AdbFacade {
             error("No platform configured");
             return null;
         }
-
         if (!bridge.isConnected() || !bridge.hasInitialDeviceList()) {
             return null;
         }
         return new ListPermissionsCommand()
                 .run(project, deviceResult.devices[0], facet, packageName);
+        //return getApplicationPermissions(facet);
+    }
+
+    private static List<PermissionState> getApplicationPermissions(AndroidFacet facet) {
+        List<PermissionState> permissionStateList = new ArrayList<>();
+        for (UsesPermission usesPermission : facet.getManifest().getUsesPermissions()) {
+            DeclaredPermissionsLookup lookup = DeclaredPermissionsLookup.getInstance(facet.getModule().getProject());
+            lookup.reset();
+            PermissionHolder holder = lookup.getPermissionHolder(facet.getModule());
+            if (!holder.isRevocable(usesPermission.getName().toString())) {
+                continue;
+            }
+            PermissionState permissionState = new PermissionState();
+            permissionState.setPermissionName(usesPermission.getName().toString());
+            permissionState.setGranted(true);
+            permissionStateList.add(permissionState);
+        }
+        return permissionStateList;
     }
 
     private static AndroidFacet getChosenFacet(Project project) {

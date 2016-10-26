@@ -8,9 +8,9 @@ import org.jetbrains.android.facet.AndroidFacet;
 import static com.developerphil.adbidea.ui.NotificationHelper.error;
 import static com.developerphil.adbidea.ui.NotificationHelper.info;
 
-public class UninstallCommand implements Command {
+public class UninstallCommand implements Command<Boolean, Void> {
     @Override
-    public boolean run(Project project, IDevice device, AndroidFacet facet, String packageName) {
+    public Boolean run(Project project, IDevice device, AndroidFacet facet, String packageName, Void... parameters) {
         try {
             String errorCode = device.uninstallPackage(packageName);
             if (errorCode == null) {

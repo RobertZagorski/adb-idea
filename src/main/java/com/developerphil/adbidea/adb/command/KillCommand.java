@@ -11,9 +11,9 @@ import static com.developerphil.adbidea.adb.AdbUtil.isAppInstalled;
 import static com.developerphil.adbidea.ui.NotificationHelper.error;
 import static com.developerphil.adbidea.ui.NotificationHelper.info;
 
-public class KillCommand implements Command {
+public class KillCommand implements Command<Boolean, Void> {
     @Override
-    public boolean run(Project project, IDevice device, AndroidFacet facet, String packageName) {
+    public Boolean run(Project project, IDevice device, AndroidFacet facet, String packageName, Void... parameters) {
         try {
             if (isAppInstalled(device, packageName)) {
                 device.executeShellCommand("am force-stop " + packageName, new GenericReceiver(), 15L, TimeUnit.SECONDS);

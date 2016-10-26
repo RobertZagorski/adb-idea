@@ -4,10 +4,10 @@ import com.android.ddmlib.IDevice;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.android.facet.AndroidFacet;
 
-public interface Command {
+public interface Command<T, V> {
     /**
      *
-     * @return true if the command executed properly
+     * @return The result of the command (usually if is executed properly)
      */
-    boolean run(Project project, IDevice device, AndroidFacet facet, String packageName);
+    T run(Project project, IDevice device, AndroidFacet facet, String packageName, V... parameters);
 }

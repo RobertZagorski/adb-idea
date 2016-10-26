@@ -17,10 +17,10 @@ import java.util.concurrent.TimeUnit;
 import static com.developerphil.adbidea.ui.NotificationHelper.error;
 import static com.developerphil.adbidea.ui.NotificationHelper.info;
 
-public class StartDefaultActivityCommand implements Command {
+public class StartDefaultActivityCommand implements Command<Boolean, Void> {
 
     @Override
-    public boolean run(Project project, IDevice device, AndroidFacet facet, String packageName) {
+    public Boolean run(Project project, IDevice device, AndroidFacet facet, String packageName, Void... parameters) {
         String defaultActivityName = getDefaultActivityName(project, facet);
         String component = packageName + "/" + defaultActivityName;
 

@@ -12,13 +12,14 @@ import static com.developerphil.adbidea.adb.AdbUtil.isAppInstalled;
 import static com.developerphil.adbidea.ui.NotificationHelper.error;
 import static com.developerphil.adbidea.ui.NotificationHelper.info;
 
-public class GrantRevokePermissionsCommand implements CommandWithParameter<PermissionState> {
+public class GrantRevokePermissionsCommand implements Command<Boolean, PermissionState> {
     private static final String COMMAND = "pm %s %s %s ";
     private static final String GRANT = "grant";
     private static final String REVOKE = "revoke";
 
     @Override
-    public boolean run(Project project, IDevice device, AndroidFacet facet, String packageName, PermissionState permission) {
+    public Boolean run(Project project, IDevice device, AndroidFacet facet, String packageName, PermissionState... permissions) {
+        PermissionState permission = permissions[0];
         try {
             if (!isAppInstalled(device, packageName)) {
                 error(String.format("<b>%s</b> is not installed on %s", packageName, device.getName()));
